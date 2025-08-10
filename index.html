@@ -1,178 +1,538 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>49miaojiang's Personal Website</title>
+    <title>49miaojiang的个人网站</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-            background-color: #f5f5f5;
-            transition: all 0.5s ease-in-out;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
+
+        :root {
+            --primary: #0ff;
+            --secondary: #f0f;
+            --bg-dark: #0a0a1a;
+            --bg-light: #121230;
+            --text-light: #e6f1ff;
+            --text-gray: #8892b0;
+            --card-bg: rgba(25, 25, 60, 0.7);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --glow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light));
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 背景模糊层 */
+        .blur-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://i.hd-r.icu/ab170a8752954a5019521c52f8443b67.png') center/cover no-repeat;
+            filter: blur(15px) brightness(0.7);
+            z-index: -2;
+        }
+
+        /* 科技网格背景 */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(10, 10, 30, 0.9) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(10, 10, 30, 0.9) 2px, transparent 2px);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* 容器 */
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 头部样式 */
+        header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 头像容器 */
+        .avatar-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: var(--glow);
+            border: 3px solid var(--primary);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .avatar-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            z-index: -1;
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 名称样式 */
+        .name {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* 社交图标 */
+        .social-icons {
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            position: relative;
-            text-align: center;
-            color: white;
-            opacity: 0;
-            transform: translateY(20px);
+            gap: 25px;
+            margin: 30px 0;
+            flex-wrap: wrap;
         }
-        .background-image {
+
+        .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            color: var(--text-light);
+            font-size: 28px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--glow);
+        }
+
+        .icon::after {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('https://i.hd-r.icu/ab170a8752954a5019521c52f8443b67.png');
-            background-size: cover;
-            background-position: center;
-            filter: blur(15px);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: var(--transition);
             z-index: -1;
         }
+
+        .icon:hover::after {
+            opacity: 1;
+        }
+
+        .bilibili { color: #fb7299; }
+        .github { color: #f0f0f0; }
+        .email { color: #ea4335; }
+        .qq { color: #12b7f5; }
+
+        /* 内容区域 */
         .content {
-            z-index: 1;
-            max-width: 600px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
         }
-        h1 {
-            margin-bottom: 20px;
-        }
-        .social-icons a {
-            margin: 0 10px;
-            color: white;
-            text-decoration: none;
-            font-size: 2em;
-            transition: color 0.3s ease-in-out;
-        }
-        .social-icons a:hover {
-            color: #ffcc00;
-        }
+
         .section {
-            margin-top: 30px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            transition: var(--transition);
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+
+        .section:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: var(--glow);
         }
-        li {
-            margin: 10px 0;
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
         }
+
+        .section-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        /* 文章/项目列表 */
+        .item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-title {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .item-date {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 10px;
+        }
+
+        .item-desc {
+            color: var(--text-light);
+        }
+
+        /* 伙伴区域 */
+        .partners {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .partner {
+            text-align: center;
+            padding: 15px;
+            background: rgba(30, 30, 60, 0.5);
+            border-radius: 10px;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .partner:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(240, 0, 255, 0.5);
+        }
+
+        .partner-name {
+            font-size: 1.2rem;
+            margin: 10px 0 5px;
+            color: var(--secondary);
+        }
+
+        .partner-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .partner-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 语言切换 */
         .lang-switcher {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--text-light);
+            padding: 8px 15px;
+            border-radius: 30px;
             cursor: pointer;
-            color: white;
-            font-size: 1em;
-            transition: color 0.3s ease-in-out;
+            transition: var(--transition);
+            font-weight: bold;
+            backdrop-filter: blur(5px);
         }
-        .lang-switcher:hover {
-            color: #ddd;
+
+        .lang-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: var(--glow);
         }
-        @media (max-width: 600px) {
-            .social-icons a {
-                font-size: 1.5em;
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }
+
+        /* 动画效果 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 进入动画 */
+        .animate-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .name {
+                font-size: 2.2rem;
+            }
+            
+            .avatar-container {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .icon {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+            
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .name {
+                font-size: 1.8rem;
+            }
+            
+            .avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .social-icons {
+                gap: 15px;
+            }
+            
+            .icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
             }
         }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                document.querySelector('.container').style.opacity = '1';
-                document.querySelector('.container').style.transform = 'translateY(0)';
-            }, 500);
-
-            const englishContent = {
-                blogTitle: "Blog Articles",
-                partnersTitle: "Partners",
-                projectsTitle: "Projects",
-                blogArticles: ["Blog Post 1", "Blog Post 2"],
-                partners: ["Partner 1", "Partner 2"],
-                projects: ["Project 1", "Project 2"]
-            };
-            
-            const chineseContent = {
-                blogTitle: "博客文章",
-                partnersTitle: "合作伙伴",
-                projectsTitle: "项目",
-                blogArticles: ["文章1", "文章2"],
-                partners: ["伙伴1", "伙伴2"],
-                projects: ["项目1", "项目2"]
-            };
-
-            let currentLang = 'english';
-
-            function updateContent(lang) {
-                const content = lang === 'english' ? englishContent : chineseContent;
-                document.getElementById('blog-title').textContent = content.blogTitle;
-                document.getElementById('partners-title').textContent = content.partnersTitle;
-                document.getElementById('projects-title').textContent = content.projectsTitle;
-
-                document.querySelectorAll('#blog-list li').forEach((item, index) => {
-                    item.textContent = content.blogArticles[index];
-                });
-
-                document.querySelectorAll('#partners-list li').forEach((item, index) => {
-                    item.textContent = content.partners[index];
-                });
-
-                document.querySelectorAll('#projects-list li').forEach((item, index) => {
-                    item.textContent = content.projects[index];
-                });
-            }
-
-            document.querySelector('.lang-switcher').addEventListener('click', () => {
-                currentLang = currentLang === 'english' ? 'chinese' : 'english';
-                updateContent(currentLang);
-            });
-
-            updateContent(currentLang);
-        });
-    </script>
 </head>
 <body>
-    <div class="container">
-        <div class="background-image"></div>
-        <div class="content">
-            <h1>49miaojiang</h1>
-            <div class="social-icons">
-                <a href="https://b23.tv/bd6bvc8" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/bilibili.svg" alt="Bilibili" width="32" height="32"/></a>
-                <a href="https://github.com/muxi-danran" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/github.svg" alt="GitHub" width="32" height="32"/></a>
-                <a href="mailto:danranmuxi@outlook.com" target="_blank"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v5/icons/outlook.svg" alt="Email" width="32" height="32"/></a>
-            </div>
-            <div class="section">
-                <h2 id="blog-title">Blog Articles</h2>
-                <ul id="blog-list">
-                    <li><a href="#" target="_blank">Blog Post 1</a></li>
-                    <li><a href="#" target="_blank">Blog Post 2</a></li>
-                </ul>
-            </div>
-            <div class="section">
-                <h2 id="partners-title">Partners</h2>
-                <ul id="partners-list">
-                    <li><a href="#" target="_blank">Partner 1</a></li>
-                    <li><a href="#" target="_blank">Partner 2</a></li>
-                </ul>
-            </div>
-            <div class="section">
-                <h2 id="projects-title">Projects</h2>
-                <ul id="projects-list">
-                    <li><a href="#" target="_blank">Project 1</a></li>
-                    <li><a href="#" target="_blank">Project 2</a></li>
-                </ul>
-            </div>
-        </div>
-        <span class="lang-switcher">Toggle Language</span>
+    <!-- 模糊背景 -->
+    <div class="blur-background"></div>
+    <div class="grid-overlay"></div>
+    
+    <!-- 语言切换 -->
+    <div class="lang-switcher">
+        <button class="lang-btn" id="langToggle">EN</button>
     </div>
+    
+    <div class="container">
+        <header>
+            <!-- 头像 -->
+            <div class="avatar-container animate-in" style="animation-delay: 0.2s">
+                <img src="https://i.hd-r.icu/ab170a8752954a5019521c52f8443b67.png" alt="49miaojiang" class="avatar">
+            </div>
+            
+            <!-- 名称 -->
+            <h1 class="name animate-in" style="animation-delay: 0.4s">49miaojiang</h1>
+            
+            <!-- 社交图标 -->
+            <div class="social-icons">
+                <a href="https://b23.tv/bd6bvc8" target="_blank" class="icon animate-in" style="animation-delay: 0.6s">
+                    <i class="fab fa-bilibili bilibili"></i>
+                </a>
+                <a href="https://github.com/muxi-danran" target="_blank" class="icon animate-in" style="animation-delay: 0.7s">
+                    <i class="fab fa-github github"></i>
+                </a>
+                <a href="mailto:danranmuxi@outlook.com" class="icon animate-in" style="animation-delay: 0.8s">
+                    <i class="fas fa-envelope email"></i>
+                </a>
+                <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=K4SkrA7aGnYUfyXci2OkJBO" target="_blank" class="icon animate-in" style="animation-delay: 0.9s">
+                    <i class="fab fa-qq qq"></i>
+                </a>
+            </div>
+        </header>
+        
+        <!-- 主要内容区域 -->
+        <div class="content">
+            <!-- 博客文章 -->
+            <section class="section animate-in" style="animation-delay: 1.0s">
+                <h2 class="section-title"><i class="fas fa-blog"></i> 博客文章</h2>
+                <div class="item">
+                    <h3 class="item-title">探索WebGL的无限可能</h3>
+                    <div class="item-date">2023年10月15日</div>
+                    <p class="item-desc">深入了解WebGL技术，创建令人惊叹的3D视觉效果...</p>
+                </div>
+                <div class="item">
+                    <h3 class="item-title">CSS Grid布局完全指南</h3>
+                    <div class="item-date">2023年9月28日</div>
+                    <p class="item-desc">掌握现代CSS布局技术，构建响应式网站...</p>
+                </div>
+                <div class="item">
+                    <h3 class="item-title">Vue 3组合式API实践</h3>
+                    <div class="item-date">2023年9月10日</div>
+                    <p class="item-desc">探索Vue 3新特性，提升开发效率和代码组织...</p>
+                </div>
+            </section>
+            
+            <!-- 开发项目 -->
+            <section class="section animate-in" style="animation-delay: 1.2s">
+                <h2 class="section-title"><i class="fas fa-code"></i> 开发项目</h2>
+                <div class="item">
+                    <h3 class="item-title">Neon UI组件库</h3>
+                    <div class="item-date">React · TypeScript</div>
+                    <p class="item-desc">现代化UI组件库，专为科技感应用设计...</p>
+                </div>
+                <div class="item">
+                    <h3 class="item-title">Quantum聊天应用</h3>
+                    <div class="item-date">Vue · Firebase</div>
+                    <p class="item-desc">实时加密聊天应用，确保通信安全...</p>
+                </div>
+                <div class="item">
+                    <h3 class="item-title">Astro数据可视化</h3>
+                    <div class="item-date">D3.js · WebGL</div>
+                    <p class="item-desc">天文数据可视化工具，探索宇宙奥秘...</p>
+                </div>
+            </section>
+            
+            <!-- 伙伴 -->
+            <section class="section animate-in" style="animation-delay: 1.4s">
+                <h2 class="section-title"><i class="fas fa-users"></i> 创作伙伴</h2>
+                <div class="partners">
+                    <div class="partner">
+                        <h3 class="partner-name">别哭^</h3>
+                        <p>短视频创作者</p>
+                        <a href="https://v.kuaishou.com/Jl98Ygay" target="_blank" class="partner-link">查看主页</a>
+                    </div>
+                    <div class="partner">
+                        <h3 class="partner-name">撞鬼秒倒</h3>
+                        <p>游戏实况主播</p>
+                        <a href="https://v.kuaishou.com/J232AxZL" target="_blank" class="partner-link">查看主页</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="animate-in" style="animation-delay: 1.6s">
+            <p>&copy; 2023 49miaojiang 个人网站 | 探索科技与创意的边界</p>
+        </footer>
+    </div>
+    
+    <script>
+        // 语言切换功能
+        const langToggle = document.getElementById('langToggle');
+        let isEnglish = false;
+        
+        langToggle.addEventListener('click', function() {
+            isEnglish = !isEnglish;
+            langToggle.textContent = isEnglish ? 'CN' : 'EN';
+            
+            // 在实际应用中，这里应该更新整个页面的文本内容
+            // 这里仅作为演示，实际实现需要更完整的语言切换逻辑
+            if (isEnglish) {
+                document.querySelector('.section-title i.fa-blog').parentNode.innerHTML = '<i class="fas fa-blog"></i> Blog Posts';
+                document.querySelector('.section-title i.fa-code').parentNode.innerHTML = '<i class="fas fa-code"></i> Projects';
+                document.querySelector('.section-title i.fa-users').parentNode.innerHTML = '<i class="fas fa-users"></i> Partners';
+                document.querySelector('footer p').textContent = '© 2023 49miaojiang Personal Website | Exploring the Boundaries of Technology and Creativity';
+            } else {
+                document.querySelector('.section-title i.fa-blog').parentNode.innerHTML = '<i class="fas fa-blog"></i> 博客文章';
+                document.querySelector('.section-title i.fa-code').parentNode.innerHTML = '<i class="fas fa-code"></i> 开发项目';
+                document.querySelector('.section-title i.fa-users').parentNode.innerHTML = '<i class="fas fa-users"></i> 创作伙伴';
+                document.querySelector('footer p').textContent = '© 2023 49miaojiang 个人网站 | 探索科技与创意的边界';
+            }
+        });
+        
+        // 添加滚动动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.animate-in');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            animatedElements.forEach(element => {
+                observer.observe(element);
+            });
+        });
+    </script>
 </body>
 </html>
