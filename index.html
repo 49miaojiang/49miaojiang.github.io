@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>49miaojiang的个人网站</title>
+    <title>49miaojiang - 个人网站 (Supabase集成)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -23,6 +24,9 @@
             --card-bg: rgba(25, 25, 60, 0.7);
             --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             --glow: 0 0 15px rgba(0, 255, 255, 0.7);
+            --error: #ff4d6d;
+            --success: #2ecc71;
+            --admin: #ff9f43;
         }
 
         body {
@@ -40,7 +44,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('https://i.hd-r.icu/ab170a8752954a5019521c52f8443b67.png') center/cover no-repeat;
+            background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
             filter: blur(15px) brightness(0.7);
             z-index: -2;
         }
@@ -73,6 +77,46 @@
             padding: 40px 0;
             position: relative;
             overflow: hidden;
+        }
+
+        /* 用户操作区域 */
+        .user-actions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--text-light);
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: var(--glow);
+        }
+
+        .action-btn.admin {
+            background: rgba(255, 159, 67, 0.15);
+            border-color: var(--admin);
+        }
+
+        .action-btn.admin:hover {
+            background: rgba(255, 159, 67, 0.25);
+            box-shadow: 0 0 15px rgba(255, 159, 67, 0.7);
         }
 
         /* 头像容器 */
@@ -283,7 +327,7 @@
         .lang-switcher {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px;
             z-index: 100;
         }
 
@@ -341,6 +385,209 @@
             }
         }
 
+        /* 登录/注册模态框 */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .auth-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            border: 1px solid var(--primary);
+            position: relative;
+            transform: translateY(30px);
+            transition: transform 0.5s ease;
+        }
+
+        .auth-modal.active .auth-container {
+            transform: translateY(0);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--error);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .auth-tab.active {
+            color: var(--primary);
+        }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(30, 30, 60, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-gray);
+        }
+
+        .form-link {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .form-link:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .error {
+            background: rgba(255, 77, 109, 0.2);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        /* 数据库连接状态 */
+        .db-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 30px;
+            background: rgba(25, 25, 60, 0.9);
+            border: 1px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            z-index: 100;
+        }
+
+        .db-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .db-indicator.disconnected {
+            background: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             .name {
@@ -365,6 +612,11 @@
             .section-title {
                 font-size: 1.5rem;
             }
+            
+            .user-actions {
+                top: 15px;
+                right: 15px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -386,6 +638,177 @@
                 height: 45px;
                 font-size: 20px;
             }
+            
+            .auth-container {
+                padding: 20px;
+            }
+        }
+
+        /* 管理员面板 */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--card-bg);
+            z-index: 2000;
+            transition: right 0.5s ease;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 2px solid var(--admin);
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-panel.active {
+            right: 0;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 159, 67, 0.3);
+        }
+
+        .admin-title {
+            font-size: 1.8rem;
+            color: var(--admin);
+            font-weight: bold;
+        }
+
+        .admin-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .admin-close:hover {
+            color: var(--error);
+        }
+
+        .admin-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-section-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--admin);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-section-title i {
+            color: var(--admin);
+        }
+
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(30, 30, 60, 0.7);
+            border: 1px solid rgba(255, 159, 67, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .admin-input:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
+        }
+
+        .admin-btn {
+            padding: 10px 15px;
+            background: linear-gradient(90deg, var(--admin), #ff6b6b);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 159, 67, 0.4);
+        }
+
+        .admin-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .admin-list-item {
+            padding: 10px;
+            background: rgba(30, 30, 60, 0.5);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-list-item-title {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .admin-list-item-date {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .admin-list-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .admin-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .admin-action-btn:hover {
+            color: var(--admin);
+        }
+
+        .admin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .admin-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
@@ -399,11 +822,33 @@
         <button class="lang-btn" id="langToggle">EN</button>
     </div>
     
+    <!-- 用户操作 -->
+    <div class="user-actions">
+        <button class="action-btn" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> 登录
+        </button>
+        <button class="action-btn" id="registerBtn">
+            <i class="fas fa-user-plus"></i> 注册
+        </button>
+        <button class="action-btn admin" id="adminBtn" style="display: none;">
+            <i class="fas fa-cogs"></i> 管理面板
+        </button>
+        <button class="action-btn" id="logoutBtn" style="display: none;">
+            <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
+    </div>
+    
+    <!-- 数据库状态指示器 -->
+    <div class="db-status">
+        <div class="db-indicator" id="dbIndicator"></div>
+        <span id="dbStatusText">数据库连接中...</span>
+    </div>
+    
     <div class="container">
         <header>
             <!-- 头像 -->
             <div class="avatar-container animate-in" style="animation-delay: 0.2s">
-                <img src="https://i.hd-r.icu/ab170a8752954a5019521c52f8443b67.png" alt="49miaojiang" class="avatar">
+                <img src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&h=400&q=80" alt="49miaojiang" class="avatar">
             </div>
             
             <!-- 名称 -->
@@ -431,40 +876,22 @@
             <!-- 博客文章 -->
             <section class="section animate-in" style="animation-delay: 1.0s">
                 <h2 class="section-title"><i class="fas fa-blog"></i> 博客文章</h2>
-                <div class="item">
-                    <h3 class="item-title">探索WebGL的无限可能</h3>
-                    <div class="item-date">2023年10月15日</div>
-                    <p class="item-desc">深入了解WebGL技术，创建令人惊叹的3D视觉效果...</p>
-                </div>
-                <div class="item">
-                    <h3 class="item-title">CSS Grid布局完全指南</h3>
-                    <div class="item-date">2023年9月28日</div>
-                    <p class="item-desc">掌握现代CSS布局技术，构建响应式网站...</p>
-                </div>
-                <div class="item">
-                    <h3 class="item-title">Vue 3组合式API实践</h3>
-                    <div class="item-date">2023年9月10日</div>
-                    <p class="item-desc">探索Vue 3新特性，提升开发效率和代码组织...</p>
+                <div id="blogPosts">
+                    <div class="item">
+                        <div class="loading-spinner"></div>
+                        <p style="text-align: center; color: var(--text-gray);">正在加载文章...</p>
+                    </div>
                 </div>
             </section>
             
             <!-- 开发项目 -->
             <section class="section animate-in" style="animation-delay: 1.2s">
                 <h2 class="section-title"><i class="fas fa-code"></i> 开发项目</h2>
-                <div class="item">
-                    <h3 class="item-title">Neon UI组件库</h3>
-                    <div class="item-date">React · TypeScript</div>
-                    <p class="item-desc">现代化UI组件库，专为科技感应用设计...</p>
-                </div>
-                <div class="item">
-                    <h3 class="item-title">Quantum聊天应用</h3>
-                    <div class="item-date">Vue · Firebase</div>
-                    <p class="item-desc">实时加密聊天应用，确保通信安全...</p>
-                </div>
-                <div class="item">
-                    <h3 class="item-title">Astro数据可视化</h3>
-                    <div class="item-date">D3.js · WebGL</div>
-                    <p class="item-desc">天文数据可视化工具，探索宇宙奥秘...</p>
+                <div id="projectsList">
+                    <div class="item">
+                        <div class="loading-spinner"></div>
+                        <p style="text-align: center; color: var(--text-gray);">正在加载项目...</p>
+                    </div>
                 </div>
             </section>
             
@@ -489,10 +916,330 @@
         <!-- 页脚 -->
         <footer class="animate-in" style="animation-delay: 1.6s">
             <p>&copy; 2023 49miaojiang 个人网站 | 探索科技与创意的边界</p>
+            <p>Supabase数据库集成 | 动态内容加载 | 用户认证系统</p>
         </footer>
     </div>
     
+    <!-- 登录/注册模态框 -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <button class="close-btn" id="closeModal">&times;</button>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">登录</div>
+                <div class="auth-tab" data-tab="register">注册</div>
+                <div class="auth-tab" data-tab="forgot">忘记密码</div>
+            </div>
+            
+            <div id="messageArea"></div>
+            
+            <!-- 登录表单 -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-input" id="loginEmail" placeholder="输入邮箱" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="输入密码" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">登录</button>
+                
+                <div class="form-footer">
+                    <span>还没有账号？</span>
+                    <a class="form-link" id="showRegister">立即注册</a>
+                </div>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="registerUsername" placeholder="创建用户名" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-input" id="registerEmail" placeholder="输入邮箱" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="创建密码 (至少8位)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-input" id="registerConfirm" placeholder="再次输入密码" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">注册</button>
+                
+                <div class="form-footer">
+                    <span>已有账号？</span>
+                    <a class="form-link" id="showLogin">立即登录</a>
+                </div>
+            </form>
+            
+            <!-- 忘记密码表单 -->
+            <form class="auth-form" id="forgotForm">
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-input" id="forgotEmail" placeholder="输入注册邮箱" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">重置密码</button>
+                
+                <div class="form-footer">
+                    <a class="form-link" id="backToLogin">返回登录</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 管理员面板 -->
+    <div class="admin-overlay" id="adminOverlay"></div>
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2 class="admin-title">网站管理面板</h2>
+            <button class="admin-close" id="closeAdmin">&times;</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3 class="admin-section-title"><i class="fas fa-plus-circle"></i>添加博客文章</h3>
+            <form class="admin-form" id="addBlogForm">
+                <input type="text" class="admin-input" placeholder="文章标题" id="blogTitle" required>
+                <textarea class="admin-input" placeholder="文章描述" id="blogDesc" rows="3" required></textarea>
+                <input type="text" class="admin-input" placeholder="标签 (逗号分隔)" id="blogTags">
+                <button type="submit" class="admin-btn">添加文章</button>
+            </form>
+        </div>
+        
+        <div class="admin-section">
+            <h3 class="admin-section-title"><i class="fas fa-plus-circle"></i>添加项目</h3>
+            <form class="admin-form" id="addProjectForm">
+                <input type="text" class="admin-input" placeholder="项目名称" id="projectTitle" required>
+                <textarea class="admin-input" placeholder="项目描述" id="projectDesc" rows="3" required></textarea>
+                <input type="text" class="admin-input" placeholder="技术栈 (逗号分隔)" id="projectTech">
+                <button type="submit" class="admin-btn">添加项目</button>
+            </form>
+        </div>
+        
+        <div class="admin-section">
+            <h3 class="admin-section-title"><i class="fas fa-list"></i>最近博客文章</h3>
+            <ul class="admin-list" id="adminBlogList">
+                <li class="admin-list-item">
+                    <div>
+                        <div class="admin-list-item-title">探索WebGL的无限可能</div>
+                        <div class="admin-list-item-date">2023-10-15</div>
+                    </div>
+                    <div class="admin-list-item-actions">
+                        <button class="admin-action-btn"><i class="fas fa-edit"></i></button>
+                        <button class="admin-action-btn"><i class="fas fa-trash"></i></button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
     <script>
+        // 初始化Supabase客户端
+        const supabaseUrl = 'https://qzvvzyypmpntrvpniees.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6dnZ6eXlwbXBudHJ2cG5pZWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5MTMzMTgsImV4cCI6MjA3MDQ4OTMxOH0.1BtNS4yOJwecLnnnUy1v3HPoKOJqGfUEeLRpeDQ-HWk';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // 页面元素引用
+        const authModal = document.getElementById('authModal');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminBtn = document.getElementById('adminBtn');
+        const closeModal = document.getElementById('closeModal');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const backToLogin = document.getElementById('backToLogin');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const authForms = document.querySelectorAll('.auth-form');
+        const messageArea = document.getElementById('messageArea');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminOverlay = document.getElementById('adminOverlay');
+        const closeAdmin = document.getElementById('closeAdmin');
+        const dbIndicator = document.getElementById('dbIndicator');
+        const dbStatusText = document.getElementById('dbStatusText');
+        
+        // 检查数据库连接状态
+        async function checkDatabaseConnection() {
+            try {
+                const { data, error } = await supabase
+                    .from('blog_posts')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                dbIndicator.style.background = 'var(--success)';
+                dbIndicator.style.boxShadow = '0 0 10px var(--success)';
+                dbStatusText.textContent = '数据库已连接';
+            } catch (error) {
+                dbIndicator.style.background = 'var(--error)';
+                dbIndicator.style.boxShadow = '0 0 10px var(--error)';
+                dbStatusText.textContent = '数据库连接失败';
+                console.error('数据库连接错误:', error.message);
+            }
+        }
+        
+        // 获取博客文章
+        async function fetchBlogPosts() {
+            try {
+                const { data: posts, error } = await supabase
+                    .from('blog_posts')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (error) throw error;
+                
+                const blogPostsContainer = document.getElementById('blogPosts');
+                blogPostsContainer.innerHTML = '';
+                
+                if (posts && posts.length > 0) {
+                    posts.forEach(post => {
+                        const postElement = document.createElement('div');
+                        postElement.className = 'item';
+                        postElement.innerHTML = `
+                            <h3 class="item-title">${post.title}</h3>
+                            <div class="item-date">${new Date(post.created_at).toLocaleDateString('zh-CN')}</div>
+                            <p class="item-desc">${post.description}</p>
+                        `;
+                        blogPostsContainer.appendChild(postElement);
+                    });
+                } else {
+                    blogPostsContainer.innerHTML = '<div class="item"><p class="item-desc">暂无博客文章</p></div>';
+                }
+            } catch (error) {
+                console.error('获取博客文章失败:', error.message);
+                document.getElementById('blogPosts').innerHTML = '<div class="item"><p class="item-desc" style="color: var(--error);">加载文章失败，请刷新页面重试</p></div>';
+            }
+        }
+        
+        // 获取项目列表
+        async function fetchProjects() {
+            try {
+                const { data: projects, error } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                if (error) throw error;
+                
+                const projectsContainer = document.getElementById('projectsList');
+                projectsContainer.innerHTML = '';
+                
+                if (projects && projects.length > 0) {
+                    projects.forEach(project => {
+                        const projectElement = document.createElement('div');
+                        projectElement.className = 'item';
+                        projectElement.innerHTML = `
+                            <h3 class="item-title">${project.title}</h3>
+                            <div class="item-date">${project.tech_stack}</div>
+                            <p class="item-desc">${project.description}</p>
+                        `;
+                        projectsContainer.appendChild(projectElement);
+                    });
+                } else {
+                    projectsContainer.innerHTML = '<div class="item"><p class="item-desc">暂无项目</p></div>';
+                }
+            } catch (error) {
+                console.error('获取项目失败:', error.message);
+                document.getElementById('projectsList').innerHTML = '<div class="item"><p class="item-desc" style="color: var(--error);">加载项目失败，请刷新页面重试</p></div>';
+            }
+        }
+        
+        // 检查用户登录状态
+        async function checkAuthState() {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+                // 用户已登录
+                loginBtn.style.display = 'none';
+                registerBtn.style.display = 'none';
+                logoutBtn.style.display = 'flex';
+                
+                // 检查是否是管理员
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('is_admin')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (data && data.is_admin) {
+                    adminBtn.style.display = 'flex';
+                }
+            } else {
+                // 用户未登录
+                loginBtn.style.display = 'flex';
+                registerBtn.style.display = 'flex';
+                logoutBtn.style.display = 'none';
+                adminBtn.style.display = 'none';
+            }
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            clearMessage();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            messageArea.appendChild(messageDiv);
+            
+            // 自动消失
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (messageArea.contains(messageDiv)) {
+                            messageArea.removeChild(messageDiv);
+                        }
+                    }, 500);
+                }, 3000);
+            }
+        }
+        
+        // 清空消息
+        function clearMessage() {
+            messageArea.innerHTML = '';
+        }
+        
+        // 显示指定表单
+        function showForm(formName) {
+            // 更新标签状态
+            authTabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === formName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 显示对应表单
+            authForms.forEach(form => {
+                if (form.id === `${formName}Form`) {
+                    form.classList.add('active');
+                } else {
+                    form.classList.remove('active');
+                }
+            });
+            
+            // 清空消息
+            clearMessage();
+        }
+        
         // 语言切换功能
         const langToggle = document.getElementById('langToggle');
         let isEnglish = false;
@@ -508,11 +1255,23 @@
                 document.querySelector('.section-title i.fa-code').parentNode.innerHTML = '<i class="fas fa-code"></i> Projects';
                 document.querySelector('.section-title i.fa-users').parentNode.innerHTML = '<i class="fas fa-users"></i> Partners';
                 document.querySelector('footer p').textContent = '© 2023 49miaojiang Personal Website | Exploring the Boundaries of Technology and Creativity';
+                
+                // 更新按钮文本
+                document.getElementById('loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                document.getElementById('registerBtn').innerHTML = '<i class="fas fa-user-plus"></i> Register';
+                document.getElementById('logoutBtn').innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                document.getElementById('adminBtn').innerHTML = '<i class="fas fa-cogs"></i> Admin Panel';
             } else {
                 document.querySelector('.section-title i.fa-blog').parentNode.innerHTML = '<i class="fas fa-blog"></i> 博客文章';
                 document.querySelector('.section-title i.fa-code').parentNode.innerHTML = '<i class="fas fa-code"></i> 开发项目';
                 document.querySelector('.section-title i.fa-users').parentNode.innerHTML = '<i class="fas fa-users"></i> 创作伙伴';
                 document.querySelector('footer p').textContent = '© 2023 49miaojiang 个人网站 | 探索科技与创意的边界';
+                
+                // 更新按钮文本
+                document.getElementById('loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+                document.getElementById('registerBtn').innerHTML = '<i class="fas fa-user-plus"></i> 注册';
+                document.getElementById('logoutBtn').innerHTML = '<i class="fas fa-sign-out-alt"></i> 退出';
+                document.getElementById('adminBtn').innerHTML = '<i class="fas fa-cogs"></i> 管理面板';
             }
         });
         
@@ -531,6 +1290,268 @@
             
             animatedElements.forEach(element => {
                 observer.observe(element);
+            });
+        });
+        
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                showMessage('登录成功！欢迎回来', 'success');
+                setTimeout(() => {
+                    authModal.classList.remove('active');
+                    checkAuthState();
+                }, 1500);
+            } catch (error) {
+                showMessage('登录失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirm = document.getElementById('registerConfirm').value;
+            
+            // 验证输入
+            if (!username || !email || !password || !confirm) {
+                showMessage('所有字段都必须填写', 'error');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showMessage('密码长度至少为8位', 'error');
+                return;
+            }
+            
+            if (password !== confirm) {
+                showMessage('两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            try {
+                // 创建用户
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            username: username
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                showMessage('注册成功！请检查您的邮箱以验证账户', 'success');
+                
+                // 清空表单
+                this.reset();
+                
+                // 自动切换到登录表单
+                setTimeout(() => {
+                    showForm('login');
+                }, 2000);
+            } catch (error) {
+                showMessage('注册失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 忘记密码表单提交
+        document.getElementById('forgotForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            
+            try {
+                const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+                
+                if (error) throw error;
+                
+                showMessage('重置链接已发送到您的邮箱，请查收', 'success');
+                
+                // 清空表单
+                this.reset();
+                
+                // 自动切换到登录表单
+                setTimeout(() => {
+                    showForm('login');
+                }, 3000);
+            } catch (error) {
+                showMessage('发送重置邮件失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 登出功能
+        logoutBtn.addEventListener('click', async function() {
+            const { error } = await supabase.auth.signOut();
+            if (!error) {
+                showMessage('您已成功退出', 'success');
+                setTimeout(() => {
+                    checkAuthState();
+                }, 1000);
+            }
+        });
+        
+        // 管理员面板控制
+        adminBtn.addEventListener('click', function() {
+            adminPanel.classList.add('active');
+            adminOverlay.classList.add('active');
+        });
+        
+        closeAdmin.addEventListener('click', function() {
+            adminPanel.classList.remove('active');
+            adminOverlay.classList.remove('active');
+        });
+        
+        adminOverlay.addEventListener('click', function() {
+            adminPanel.classList.remove('active');
+            adminOverlay.classList.remove('active');
+        });
+        
+        // 添加博客文章
+        document.getElementById('addBlogForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('blogTitle').value;
+            const desc = document.getElementById('blogDesc').value;
+            const tags = document.getElementById('blogTags').value;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('blog_posts')
+                    .insert([
+                        { 
+                            title: title, 
+                            description: desc,
+                            tags: tags.split(',').map(tag => tag.trim())
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // 更新列表
+                fetchBlogPosts();
+                
+                // 清空表单
+                this.reset();
+                
+                showMessage('博客文章添加成功！', 'success');
+            } catch (error) {
+                showMessage('添加文章失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 添加项目
+        document.getElementById('addProjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('projectTitle').value;
+            const desc = document.getElementById('projectDesc').value;
+            const tech = document.getElementById('projectTech').value;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('projects')
+                    .insert([
+                        { 
+                            title: title, 
+                            description: desc,
+                            tech_stack: tech
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // 更新列表
+                fetchProjects();
+                
+                // 清空表单
+                this.reset();
+                
+                showMessage('项目添加成功！', 'success');
+            } catch (error) {
+                showMessage('添加项目失败: ' + error.message, 'error');
+            }
+        });
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', async function() {
+            // 检查数据库连接
+            await checkDatabaseConnection();
+            
+            // 获取博客文章和项目
+            await fetchBlogPosts();
+            await fetchProjects();
+            
+            // 检查用户登录状态
+            await checkAuthState();
+            
+            // 监听认证状态变化
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN') {
+                    checkAuthState();
+                } else if (event === 'SIGNED_OUT') {
+                    checkAuthState();
+                }
+            });
+        });
+        
+        // 打开登录模态框
+        loginBtn.addEventListener('click', () => {
+            showForm('login');
+            authModal.classList.add('active');
+        });
+        
+        // 打开注册模态框
+        registerBtn.addEventListener('click', () => {
+            showForm('register');
+            authModal.classList.add('active');
+        });
+        
+        // 关闭模态框
+        closeModal.addEventListener('click', () => {
+            authModal.classList.remove('active');
+            clearMessage();
+        });
+        
+        // 点击模态框外部关闭
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                authModal.classList.remove('active');
+                clearMessage();
+            }
+        });
+        
+        // 显示注册表单
+        showRegister.addEventListener('click', () => {
+            showForm('register');
+        });
+        
+        // 显示登录表单
+        showLogin.addEventListener('click', () => {
+            showForm('login');
+        });
+        
+        // 返回登录
+        backToLogin.addEventListener('click', () => {
+            showForm('login');
+        });
+        
+        // 切换标签页
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                showForm(tabName);
             });
         });
     </script>
